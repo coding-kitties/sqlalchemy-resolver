@@ -1,5 +1,5 @@
 from enum import Enum
-from sqlalchemy_wrapper.exceptions import SQLAlchemyWrapperException
+from sqlalchemy_resolver.exceptions import SQLAlchemyWrapperException
 
 
 class DatabaseType(Enum):

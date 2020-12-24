@@ -4,12 +4,12 @@ from sqlalchemy.orm import Query, class_mapper, sessionmaker, scoped_session, Se
 from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.ext.declarative import declarative_base
 
-from sqlalchemy_wrapper.base_model import Model
-from sqlalchemy_wrapper.configuration import Config
-from sqlalchemy_wrapper.exceptions import SQLAlchemyWrapperException
-from sqlalchemy_wrapper.constants import DATABASE_HOST, DATABASE_PASSWORD, DATABASE_TYPE, DATABASE_URL, \
+from sqlalchemy_resolver.base_model import Model
+from sqlalchemy_resolver.configuration import Config
+from sqlalchemy_resolver.exceptions import SQLAlchemyWrapperException
+from sqlalchemy_resolver.constants import DATABASE_HOST, DATABASE_PASSWORD, DATABASE_TYPE, DATABASE_URL, \
     DATABASE_NAME, DATABASE_USERNAME, DATABASE_PATH
-from sqlalchemy_wrapper.database_type import DatabaseType
+from sqlalchemy_resolver.database_type import DatabaseType
 
 
 class _SessionProperty:

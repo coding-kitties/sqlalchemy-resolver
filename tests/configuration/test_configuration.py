@@ -1,6 +1,6 @@
 from unittest import TestCase
-from sqlalchemy_wrapper.configuration import Config
-from sqlalchemy_wrapper.database_type import DatabaseType
+from sqlalchemy_resolver.configuration import Config
+from sqlalchemy_resolver.database_type import DatabaseType
 from tests.utils import random_string
 
 

@@ -1,5 +1,5 @@
 import setuptools
-from sqlalchemy_wrapper import get_version
+from sqlalchemy_resolver import get_version
 
 VERSION = get_version()
 
@@ -10,15 +10,15 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setuptools.setup(
-    name="sqlalchemy-wrapper",
+    name="sqlalchemy-resolver",
     version=VERSION,
     license="BSL-1.1",
     author="coding kitties",
-    description="A wrapper for sqlalchemy that helps in using sqlalchemy",
+    description="A collection of sqlalchemy utility classes that helps in using sqlalchemy",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/coding-kitties/sqlalchemy-wrapper.git",
-    download_url="https://github.com/coding-kitties/sqlalchemy-wrapper/archive/{}.tar.gz".format(get_version()),
+    url="https://github.com/coding-kitties/sqlalchemy-resolver.git",
+    download_url="https://github.com/coding-kitties/sqlalchemy-resolver/archive/{}.tar.gz".format(get_version()),
     packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
     keywords=['SQLALCHEMY', 'SQL', 'ORM', 'DATABASE'],
     classifiers=[
