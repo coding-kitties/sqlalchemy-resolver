@@ -1,5 +1,5 @@
 import setuptools
-from investing_algorithm_framework import get_version
+from sqlalchemy_wrapper import get_version
 
 VERSION = get_version()
 
@@ -14,13 +14,13 @@ setuptools.setup(
     version=VERSION,
     license="BSL-1.1",
     author="coding kitties",
-    description="A framework for creating an investment algorithm",
+    description="A wrapper for sqlalchemy that helps in using sqlalchemy",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/coding-kitties/investing-algorithm-framework.git",
-    download_url='https://github.com/coding-kitties/investing-algorithm-framework/archive/v0.1.1.tar.gz',
+    url="https://github.com/coding-kitties/sqlalchemy-wrapper.git",
+    download_url="https://github.com/coding-kitties/sqlalchemy-wrapper/archive/{}.tar.gz".format(get_version()),
     packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
-    keywords=['INVESTING', 'BOT', 'ALGORITHM', 'FRAMEWORK'],
+    keywords=['SQLALCHEMY', 'SQL', 'ORM', 'DATABASE'],
     classifiers=[
         "Intended Audience :: Developers",
         'Programming Language :: Python :: 3',
@@ -28,7 +28,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         "Topic :: Software Development",
-        "License :: Other/Proprietary License",
+        "License :: OSI Approved :: MIT License",
     ],
     install_requires=required,
     python_requires='>=3.6',

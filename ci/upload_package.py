@@ -28,5 +28,5 @@ if __name__ == "__main__":
             shutil.rmtree('dist')
 
         os.system("python setup.py sdist bdist_wheel")
-        os.system("twine upload -r investing-algorithm-framework dist/*")
+        os.system("twine upload -r sqlalchemy-wrapper dist/*")
         os.system("twine upload -p $pipy_password -u $pipy_username dist/*")
