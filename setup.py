@@ -10,7 +10,7 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setuptools.setup(
-    name="investing_algorithm_framework",
+    name="sqlalchemy-wrapper",
     version=VERSION,
     license="BSL-1.1",
     author="coding kitties",
