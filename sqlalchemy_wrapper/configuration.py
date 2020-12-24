@@ -1,7 +1,7 @@
 class Config(object):
     DATABASE_NAME = 'dev_db'
     DATABASE_TYPE = 'sqlite3',
-    DATABASE_HOST = None
+    DATABASE_URL = None
     DATABASE_PASSWORD = None
     DATABASE_USERNAME = None
 
