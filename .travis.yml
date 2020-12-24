@@ -20,4 +20,4 @@ jobs:
 stages:
   - test
   - name: deploy
-    if: branch = master
+    if: branch = main
