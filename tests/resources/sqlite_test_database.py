@@ -1,21 +1,19 @@
 import os
+from pathlib import Path
 from unittest import TestCase
 
 from sqlalchemy_resolver.wrappers import SQLAlchemyWrapper
 from sqlalchemy_resolver.constants import DATABASE_PATH, DATABASE_NAME
 
+BASE_DIR = str(Path(__file__).parent.parent.parent)
+
 
 def create_config():
     return {
         DATABASE_NAME: 'test_db',
-        DATABASE_PATH: database_directory,
+        DATABASE_PATH: BASE_DIR,
     }
 
-
-database_directory = os.path.join(
-    os.path.abspath(os.path.join(os.getcwd())),
-    'resources/'
-)
 
 sql_lite_db = SQLAlchemyWrapper()
 
