@@ -1,7 +1,7 @@
 import os
 from unittest import TestCase
 
-from sqlalchemy_resolver.wrappers import SQLAlchemyWrapper
+from sqlalchemy_resolver.wrappers import SQLAlchemyWrapper, FlaskBaseQuery
 from sqlalchemy_resolver.constants import DATABASE_PATH, DATABASE_NAME
 
 
@@ -17,18 +17,18 @@ database_directory = os.path.join(
     'resources/'
 )
 
-sql_lite_db = SQLAlchemyWrapper()
+flask_sql_lite_db = SQLAlchemyWrapper(query_class=FlaskBaseQuery)
 
 
-class SQLiteTestBase(TestCase):
+class FlaskSQLiteTestBase(TestCase):
 
     def setUp(self) -> None:
-        sql_lite_db.connect_sqlite(create_config())
-        sql_lite_db.initialize_tables()
+        flask_sql_lite_db.connect_sqlite(create_config())
+        flask_sql_lite_db.initialize_tables()
 
     def tearDown(self):
-        sql_lite_db.session.close()
-        database_path = sql_lite_db.config[DATABASE_PATH]
+        flask_sql_lite_db.session.close()
+        database_path = flask_sql_lite_db.config[DATABASE_PATH]
 
         if os.path.isfile(database_path):
             os.remove(database_path)

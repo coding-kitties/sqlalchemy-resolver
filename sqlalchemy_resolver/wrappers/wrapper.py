@@ -1,4 +1,6 @@
 import os
+from flask import request
+from math import ceil
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Query, class_mapper, sessionmaker, scoped_session, \
     Session
@@ -7,7 +9,8 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy_resolver.base_model import Model
 from sqlalchemy_resolver.configuration import Config
-from sqlalchemy_resolver.exceptions import SQLAlchemyWrapperException
+from sqlalchemy_resolver.exceptions import SQLAlchemyWrapperException, \
+    SQLAlchemyResolverFlaskException
 from sqlalchemy_resolver.constants import DATABASE_HOST, DATABASE_PASSWORD, \
     DATABASE_TYPE, DATABASE_URL, DATABASE_NAME, DATABASE_USERNAME, \
     DATABASE_PATH
@@ -46,6 +49,168 @@ class _QueryProperty:
 
         except UnmappedClassError:
             return None
+
+
+class Pagination:
+
+    def __init__(self, query, page, per_page, total, items):
+        #: the unlimited query object that was used to create this
+        #: pagination object.
+        self.query = query
+        #: the current page number (1 indexed)
+        self.page = page
+        #: the number of items to be displayed on a page.
+        self.per_page = per_page
+        #: the total number of items matching the query
+        self.total = total
+        #: the items for the current page
+        self.items = items
+
+    @property
+    def pages(self):
+        """The total number of pages"""
+        if self.per_page == 0 or self.total is None:
+            pages = 0
+        else:
+            pages = int(ceil(self.total / float(self.per_page)))
+        return pages
+
+    def prev(self, error_out=False):
+        """Returns a :class:`Pagination` object for the previous page."""
+        assert (
+                self.query is not None
+        ), "a query object is required for this method to work"
+        return self.query.paginate(self.page - 1, self.per_page, error_out)
+
+    @property
+    def prev_num(self):
+        """Number of the previous page."""
+        if not self.has_prev:
+            return None
+        return self.page - 1
+
+    @property
+    def has_prev(self):
+        """True if a previous page exists"""
+        return self.page > 1
+
+    def next(self, error_out=False):
+        """Returns a :class:`Pagination` object for the next page."""
+        assert (
+                self.query is not None
+        ), "a query object is required for this method to work"
+        return self.query.paginate(self.page + 1, self.per_page, error_out)
+
+    @property
+    def has_next(self):
+        """True if a next page exists."""
+        return self.page < self.pages
+
+    @property
+    def next_num(self):
+        """Number of the next page"""
+        if not self.has_next:
+            return None
+        return self.page + 1
+
+    def iter_pages(
+            self,
+            left_edge=2,
+            left_current=2,
+            right_current=5,
+            right_edge=2
+    ):
+        last = 0
+        for num in range(1, self.pages + 1):
+            if (
+                    num <= left_edge
+                    or (
+                        num > self.page - left_current - 1
+                        and num < self.page + right_current
+                    )
+                    or num > self.pages - right_edge
+            ):
+                if last + 1 != num:
+                    yield None
+                yield num
+                last = num
+
+
+class FlaskBaseQuery(Query):
+
+    def first_or_404(self, error_message=None):
+        rv = self.first()
+        if rv is None:
+            raise SQLAlchemyResolverFlaskException(
+                message=error_message, status_code=404
+            )
+        return rv
+
+    def paginate(
+            self, page: int = None,
+            per_page: int = None,
+            throw_api_exception=False
+    ):
+
+        if request:
+            if page is None:
+                try:
+                    page = int(request.args.get("page", 1))
+                except (TypeError, ValueError):
+                    if throw_api_exception:
+                        raise SQLAlchemyResolverFlaskException(
+                            status_code=400,
+                            message="Given page does not exist"
+                        )
+
+                    page = 1
+
+            if per_page is None:
+                try:
+                    per_page = int(request.args.get("per_page", 20))
+                except (TypeError, ValueError):
+                    if throw_api_exception:
+                        raise SQLAlchemyResolverFlaskException(
+                            status_code=400,
+                            message="Given per page value does not exist"
+                        )
+
+                    per_page = 20
+        else:
+            if page is None:
+                page = 1
+
+            if per_page is None:
+                per_page = 20
+
+        if page < 1:
+            if throw_api_exception:
+                raise SQLAlchemyResolverFlaskException(
+                    status_code=400,
+                    message="Page value is negative"
+                )
+            else:
+                page = 1
+
+        if per_page < 0:
+            if throw_api_exception:
+                raise SQLAlchemyResolverFlaskException(
+                    status_code=400,
+                    message="Per page value is negative"
+                )
+            else:
+                per_page = 20
+
+        items = self.limit(per_page).offset((page - 1) * per_page).all()
+
+        if not items and page != 1 and throw_api_exception:
+            raise SQLAlchemyResolverFlaskException(
+                status_code=400,
+                message="No values"
+            )
+
+        total = self.order_by(None).count()
+        return Pagination(self, page, per_page, total, items)
 
 
 class SQLAlchemyWrapper:
@@ -169,29 +334,30 @@ class SQLAlchemyWrapper:
             if not self.config:
                 raise SQLAlchemyWrapperException("Config is not defined")
 
-        try:
-            data_base_path = self.config[DATABASE_PATH]
-
-            if not os.path.isdir(data_base_path):
-                raise SQLAlchemyWrapperException(
-                    "Database path is not a directory"
-                )
-
-            if not config[DATABASE_PATH].endswith(".sqlite3"):
-                data_base_name = self.config[DATABASE_NAME]
-                database_path = os.path.join(
-                    data_base_path, data_base_name
-                )
-                database_path += ".sqlite3"
-                self.config[DATABASE_PATH] = database_path
-        except Exception as e:
+        if DATABASE_PATH not in self.config:
             raise SQLAlchemyWrapperException(
-                "Missing configuration settings for sqlite3. For sqlite3 the "
-                "following attributes are needed: DATABASE_PATH, DATABASE_NAME"
+                "Missing configuration DATABASE_PATH"
             )
 
+        if not os.path.isdir(self.config[DATABASE_PATH]):
+            raise SQLAlchemyWrapperException(
+                "Given database path is not a directory"
+            )
+
+        if DATABASE_NAME not in self.config:
+            raise SQLAlchemyWrapperException(
+                "Missing configuration DATABASE_NAME"
+            )
+
+        data_base_path = self.config[DATABASE_PATH]
+        data_base_name = self.config[DATABASE_NAME]
+        database_path = os.path.join(
+            data_base_path, data_base_name
+        )
+        database_path += ".sqlite3"
+        self.config[DATABASE_PATH] = database_path
+
         if not os.path.isfile(self.config[DATABASE_PATH]):
-            print()
             os.mknod(self.config[DATABASE_PATH])
 
         self.config[DATABASE_URL] = 'sqlite:////{}'.format(
